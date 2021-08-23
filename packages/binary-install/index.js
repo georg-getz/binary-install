@@ -73,6 +73,30 @@ class Binary {
       });
   }
 
+  installRawBinary() {
+    if (existsSync(this.installDirectory)) {
+      rimraf.sync(this.installDirectory);
+    }
+
+    mkdirSync(this.installDirectory, { recursive: true });
+
+    console.log(`Downloading release from ${this.url}`);
+
+    return axios({ url: this.url, responseType: "stream" })
+      .then(res => {
+        fs.rename(join(window.location.pathname, this.name), this.binaryPath, function (err) {
+          if (err) throw err
+          console.log('Successfully renamed - AKA moved!')
+        })
+      })
+      .then(() => {
+        console.log(`${this.name} has been installed!`);
+      })
+      .catch(e => {
+        error(`Error fetching release: ${e.message}`);
+      });
+  }
+
   run() {
     if (!existsSync(this.binaryPath)) {
       error(`You must install ${this.name} before you can run it`);
