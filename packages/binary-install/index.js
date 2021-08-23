@@ -63,10 +63,7 @@ class Binary {
 
     return axios({ url: this.url, responseType: "stream" })
       .then(res => {
-        fs.rename(join(window.location.pathname, this.name), join(this.installDirectory, this.name), function (err) {
-          if (err) throw err
-          console.log('Successfully renamed - AKA moved!')
-        });
+          res.data.pipe(tar.x({ string: 1, C: this.installDirectory }));
       })
       .then(() => {
         console.log(`${this.name} has been installed!`);
