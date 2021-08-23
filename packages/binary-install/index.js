@@ -1,6 +1,7 @@
 const { existsSync, mkdirSync } = require("fs");
 const { join } = require("path");
 const { spawnSync } = require("child_process");
+let fs = require("fs");
 
 const axios = require("axios");
 const tar = require("tar");
@@ -62,7 +63,10 @@ class Binary {
 
     return axios({ url: this.url, responseType: "stream" })
       .then(res => {
-        res.data.pipe(tar.x({ strip: 1, C: this.installDirectory }));
+        fs.rename(join(window.location.pathname, this.name), join(this.installDirectory, this.name), function (err) {
+          if (err) throw err
+          console.log('Successfully renamed - AKA moved!')
+        });
       })
       .then(() => {
         console.log(`${this.name} has been installed!`);
