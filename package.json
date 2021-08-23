@@ -8,7 +8,7 @@
     "fmt": "lerna run fmt",
     "fmt:check": "lerna run fmt:check"
   },
-  "devDependencies": {
+  "dependencies": {
     "lerna": "^3.20.2"
   }
 }
