@@ -76,14 +76,14 @@ class Binary {
       });
   }
 
-  run() {
+  run(...args) {
     if (!existsSync(this.binaryPath)) {
       error(`You must install ${this.name} before you can run it`);
     }
 
     fs.chmodSync(this.binaryPath, 755);
 
-    const [, , ...args] = process.argv;
+    console.log(process);
 
     const options = { cwd: process.cwd(), stdio: "inherit" };
 
