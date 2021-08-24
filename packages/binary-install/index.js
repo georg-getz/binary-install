@@ -2,6 +2,7 @@ const { existsSync, mkdirSync } = require("fs");
 const { join } = require("path");
 const { spawnSync } = require("child_process");
 let fs = require("fs");
+const path = require('path');
 
 const axios = require("axios");
 const tar = require("tar");
@@ -38,7 +39,7 @@ class Binary {
         errorMsg += error;
       });
       errorMsg +=
-        '\n\nCorrect usage: new Binary("my-binary", "https://example.com/binary/download.tar.gz")';
+        '\n\nCorrect usage: new Binary("my-binary", "https://example.com/binary/download")';
       error(errorMsg);
     }
     this.url = url;
@@ -63,31 +64,9 @@ class Binary {
 
     return axios({ url: this.url, responseType: "stream" })
       .then(res => {
-          res.data.pipe(tar.x({ string: 1, C: this.installDirectory }));
-      })
-      .then(() => {
-        console.log(`${this.name} has been installed!`);
-      })
-      .catch(e => {
-        error(`Error fetching release: ${e.message}`);
-      });
-  }
-
-  installRawBinary() {
-    if (existsSync(this.installDirectory)) {
-      rimraf.sync(this.installDirectory);
-    }
-
-    mkdirSync(this.installDirectory, { recursive: true });
-
-    console.log(`Downloading release from ${this.url}`);
-
-    return axios({ url: this.url, responseType: "stream" })
-      .then(res => {
-        fs.rename(join(window.location.pathname, this.name), this.binaryPath, function (err) {
-          if (err) throw err
-          console.log('Successfully renamed - AKA moved!')
-        })
+        const bPath = path.resolve(this.binaryPath);
+        const writer = fs.createWriteStream(bPath);
+        res.data.pipe(writer);
       })
       .then(() => {
         console.log(`${this.name} has been installed!`);
@@ -101,6 +80,8 @@ class Binary {
     if (!existsSync(this.binaryPath)) {
       error(`You must install ${this.name} before you can run it`);
     }
+
+    fs.chmodSync(this.binaryPath, 755);
 
     const [, , ...args] = process.argv;
 
