@@ -70,6 +70,7 @@ class Binary {
       })
       .then(() => {
         console.log(`${this.name} has been installed!`);
+        Promise.resolve();
       })
       .catch(e => {
         error(`Error fetching release: ${e.message}`);
