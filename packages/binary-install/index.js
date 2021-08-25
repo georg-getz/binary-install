@@ -53,7 +53,7 @@ class Binary {
     this.binaryPath = join(this.installDirectory, this.name);
   }
 
-  install() {
+  async install() {
     if (existsSync(this.installDirectory)) {
       rimraf.sync(this.installDirectory);
     }
