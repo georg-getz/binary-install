@@ -78,13 +78,16 @@ class Binary {
   run(...args) {
     const TIMEOUT_SECONDS = 15;
     console.log("Waiting for file writing to finish");
-    for(let i = 0; i < TIMEOUT_SECONDS * 2; i++) {
-      setTimeout(() => {
-        if (existsSync(this.binaryPath)) {
-          break;
+    let waitForFile = function(i) {
+      return function() {
+        if (i >= TIMEOUT_SECONDS * 5) {
+          return;
+        } else {
+          setTimeout(waitForFile(++i), 200);
         }
-      }, 500);
+      }
     }
+
     if (!existsSync(this.binaryPath)) {
       error(`${this.binaryPath} not found, waiting terminated after ${TIMEOUT_SECONDS} seconds.`);
     }
