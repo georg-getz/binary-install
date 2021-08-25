@@ -5,7 +5,6 @@ let fs = require("fs");
 const path = require('path');
 
 const axios = require("axios");
-const tar = require("tar");
 const rimraf = require("rimraf");
 
 const error = msg => {
@@ -53,7 +52,7 @@ class Binary {
     this.binaryPath = join(this.installDirectory, this.name);
   }
 
-  async install() {
+  install() {
     if (existsSync(this.installDirectory)) {
       rimraf.sync(this.installDirectory);
     }
@@ -70,7 +69,6 @@ class Binary {
       })
       .then(() => {
         console.log(`${this.name} has been installed!`);
-        Promise.resolve();
       })
       .catch(e => {
         error(`Error fetching release: ${e.message}`);
@@ -78,8 +76,17 @@ class Binary {
   }
 
   run(...args) {
+    const TIMEOUT_SECONDS = 15;
+    console.log("Waiting for file writing to finish");
+    for(let i = 0; i < TIMEOUT_SECONDS * 2; i++) {
+      setTimeout(() => {
+        if (existsSync(this.binaryPath)) {
+          break;
+        }
+      }, 500);
+    }
     if (!existsSync(this.binaryPath)) {
-      error(`You must install ${this.name} before you can run it`);
+      error(`${this.binaryPath} not found, waiting terminated after ${TIMEOUT_SECONDS} seconds.`);
     }
 
     fs.chmodSync(this.binaryPath, 755);
