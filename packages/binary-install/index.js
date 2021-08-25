@@ -1,9 +1,8 @@
 const { existsSync, mkdirSync } = require("fs");
 const { join } = require("path");
 const { spawnSync } = require("child_process");
-let fs = require("fs");
+const fs = require("fs");
 const path = require('path');
-
 const axios = require("axios");
 const rimraf = require("rimraf");
 
@@ -13,7 +12,7 @@ const error = msg => {
 };
 
 class Binary {
-  constructor(name, url) {
+  constructor(name, url, tag) {
     let errors = [];
     if (typeof url !== "string") {
       errors.push("url must be a string");
@@ -26,6 +25,9 @@ class Binary {
     }
     if (name && typeof name !== "string") {
       errors.push("name must be a string");
+    }
+    if (tag && typeof tag !== "string") {
+      errors.push("tag must be a string");
     }
 
     if (!name) {
@@ -43,7 +45,11 @@ class Binary {
     }
     this.url = url;
     this.name = name;
-    this.installDirectory = join(__dirname, "bin");
+    if (tag) {
+      this.installDirectory = join(__dirname, "bin", tag);
+    } else{
+      this.installDirectory = join(__dirname, "bin");
+    }
 
     if (!existsSync(this.installDirectory)) {
       mkdirSync(this.installDirectory, { recursive: true });
@@ -53,9 +59,14 @@ class Binary {
   }
 
   install() {
-    if (existsSync(this.installDirectory)) {
-      rimraf.sync(this.installDirectory);
+    if (existsSync(this.binaryPath)) {
+      console.log(`Skipping download/install step because binary already exists at ${this.installDirectory}`)
+      return;
     }
+
+    // if (existsSync(this.installDirectory)) { // DONT REMOVE BECAUSE FORCE FLAG IS PROBABLY GETTING ADDED AS WELL
+    //   rimraf.sync(this.installDirectory);
+    // }
 
     mkdirSync(this.installDirectory, { recursive: true });
 
@@ -69,7 +80,7 @@ class Binary {
         return new Promise((resolve, reject) => {
           res.data.pipe(writer);
           let error = null;
-          
+
           writer.on('error', err => {
             error = err;
             writer.close();
