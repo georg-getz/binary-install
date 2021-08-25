@@ -87,6 +87,7 @@ class Binary {
         }
       }
     }
+    setTimeout(waitForFile(0), 200);
 
     if (!existsSync(this.binaryPath)) {
       error(`${this.binaryPath} not found, waiting terminated after ${TIMEOUT_SECONDS} seconds.`);
