@@ -65,7 +65,23 @@ class Binary {
       .then(res => {
         const bPath = path.resolve(this.binaryPath);
         const writer = fs.createWriteStream(bPath);
-        res.data.pipe(writer);
+
+        return new Promise((resolve, reject) => {
+          res.data.pipe(writer);
+          let error = null;
+          
+          writer.on('error', err => {
+            error = err;
+            writer.close();
+            reject(err);
+          });
+
+          writer.on('close', () => {
+            if (!error) {
+              resolve(true);
+            }
+          });
+        });
       })
       .then(() => {
         console.log(`${this.name} has been installed!`);
@@ -76,30 +92,13 @@ class Binary {
   }
 
   run(...args) {
-    const TIMEOUT_SECONDS = 15;
-    console.log("Waiting for file writing to finish");
-    let waitForFile = function(i) {
-      return function() {
-        console.log(i);
-        if (existsSync(this.binaryPath) || i >= TIMEOUT_SECONDS * 20) {
-          return;
-        } else {
-          setTimeout(waitForFile(++i), 50);
-        }
-      }
-    }
-    setTimeout(function() { waitForFile(0); }, 50);
-
     if (!existsSync(this.binaryPath)) {
-      error(`${this.binaryPath} not found, waiting terminated after ${TIMEOUT_SECONDS} seconds.`);
+      error(`${this.binaryPath} not found.`);
     }
 
     fs.chmodSync(this.binaryPath, 755);
 
-    console.log(process);
-
     const options = { cwd: process.cwd(), stdio: "inherit" };
-
     const result = spawnSync(this.binaryPath, args, options);
 
     if (result.error) {
