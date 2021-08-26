@@ -40,7 +40,7 @@ class Binary {
         errorMsg += error;
       });
       errorMsg +=
-        '\n\nCorrect usage: new Binary("my-binary", "https://example.com/binary/download")';
+        '\n\nCorrect usage: new Binary("my-binary", "https://example.com/binary", "0.0.1")\n(Tag (e.g. 0.0.1) in not mandatory)';
       error(errorMsg);
     }
     this.url = url;
@@ -58,18 +58,16 @@ class Binary {
     this.binaryPath = join(this.installDirectory, this.name);
   }
 
-  install() {
-    if (existsSync(this.binaryPath)) {
+  install(force) {
+    if (force === true && existsSync(this.installDirectory)) {
+      console.log(`Deleting ${this.installDirectory}`)
+      rimraf.sync(this.installDirectory);
+    } else if (existsSync(this.binaryPath)) {
       console.log(`Skipping download/install step because binary already exists at ${this.installDirectory}`)
       return;
     }
 
-    // if (existsSync(this.installDirectory)) { // DONT REMOVE BECAUSE FORCE FLAG IS PROBABLY GETTING ADDED AS WELL
-    //   rimraf.sync(this.installDirectory);
-    // }
-
     mkdirSync(this.installDirectory, { recursive: true });
-
     console.log(`Downloading release from ${this.url}`);
 
     return axios({ url: this.url, responseType: "stream" })
